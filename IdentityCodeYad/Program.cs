@@ -1,4 +1,5 @@
 using IdentityCodeYad.Data;
+using IdentityCodeYad.Tools;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,6 +11,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddDefaultIdentity<IdentityUser>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+#region Services
+
+builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
+
+#endregion
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
