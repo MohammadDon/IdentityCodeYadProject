@@ -1,0 +1,46 @@
+﻿@model IdentityCodeYad.ViewModels.LoginVM
+@{
+    ViewData["Title"] = "Log In";
+    var returnUrl = ViewBag.ReturnUrl as string;
+}
+
+<h1>Log In</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="Login" method="post" asp-route-returnUrl="@returnUrl">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="UserName" class="control-label"></label>
+                <input asp-for="UserName" class="form-control"/>
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Email" class="control-label"></label>
+                <input asp-for="Email" class="form-control"/>
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Password" class="control-label"></label>
+                <input asp-for="Password" class="form-control"/>
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="RememberMe" class="control-label"></label>
+                <input asp-for="RememberMe" class="form-check"/>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Log In" class="btn btn-success"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-controller="Home" asp-action="Index">Back to Home</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
