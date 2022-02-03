@@ -32,7 +32,10 @@ namespace IdentityCodeYad.Controllers
         public async Task<IActionResult> Register(RegisterVM model)
         {
             if (!ModelState.IsValid)
+            {
+                ViewBag.IsSent = false;
                 return View();
+            }
 
             var result = await _userManager.CreateAsync(new IdentityUser()
             {
@@ -46,6 +49,7 @@ namespace IdentityCodeYad.Controllers
                 foreach (var err in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, err.Description);
+                    ViewBag.IsSent = false;
                     return View();
                 }
             }
@@ -124,6 +128,75 @@ namespace IdentityCodeYad.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult ForgotPassword()
+        {
+            ViewBag.IsSent = false;
+            return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordVM model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.IsSent = false;
+                return View(model);
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty,"تلاش برای ارسال ایمیل ناموفق بود");
+                ViewBag.IsSent = false;
+                return View();
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            string? callBackUrl = Url.ActionLink("ResetPassword", "Account", new { email = user.Email, token = token },
+                Request.Scheme);
+            string body = await _viewRenderService.RenderToStringAsync("_ResetPasswordEmail", callBackUrl);
+            await _emailSender.SendEmailAsync(new EmailModel(user.Email, "بازیابی کلمه عبور", body));
+            ViewBag.IsSent = true;
+            return View();
+        }
+
+        public IActionResult ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token)) return BadRequest();
+
+            ResetPasswordVM model = new ResetPasswordVM()
+            {
+                Email = email,
+                Token = token
+            };
+
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordVM model)
+        {
+            if (!ModelState.IsValid) return View();
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "تلاش برای بازیابی کلمه عبور ناموفق بود");
+                return View(model);
+            }
+
+            var token = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
+            var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+            if (!result.Succeeded)
+            {
+                foreach (var err in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty,err.Description);
+                }
+            }
+
+            return RedirectToAction("Login");
         }
     }
 }
