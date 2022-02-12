@@ -9,12 +9,6 @@
 <div class="row">
     <div class="col-md-12">
         <form asp-action="Register" method="post">
-            @if (ViewBag.IsSent)
-            {
-                <div class="alert alert-success">
-                    Email confirmation Sent!
-                </div>
-            }
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <div class="form-group">
                 <label asp-for="UserName" class="control-label"></label>

@@ -1,0 +1,35 @@
+﻿@model IdentityCodeYad.ViewModels.LoginConfirmationVM
+@{
+    ViewData["Title"] = "Login Confirmation";
+}
+
+<h1>Login Confirmation</h1>
+
+<hr />
+<div class="row">
+    <div class="col-md-12">
+        <form asp-action="LoginConfirmation" method="post">
+            <input type="hidden" asp-for="Phone"/>
+            <input type="hidden" asp-for="Code"/>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="SmsCode" class="control-label"></label>
+                <input asp-for="SmsCode" class="form-control"/>
+                <span class="text-secondary">@Model.Code</span>
+                <span asp-validation-for="SmsCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Login" class="btn btn-success"/>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-controller="Home" asp-action="Index">Back to Home</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

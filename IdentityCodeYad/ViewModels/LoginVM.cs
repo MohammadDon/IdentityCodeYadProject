@@ -17,3 +17,9 @@ public class LoginVM
     [Display(Name = "Remember Me?")]
     public bool RememberMe { get; set; }
 }
+
+public class LoginWithPhoneVM
+{
+    [Required,Phone]
+    public string Phone { get; set; }
+}

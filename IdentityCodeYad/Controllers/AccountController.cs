@@ -4,6 +4,7 @@ using IdentityCodeYad.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace IdentityCodeYad.Controllers
 {
@@ -24,7 +25,7 @@ namespace IdentityCodeYad.Controllers
 
         public IActionResult Register()
         {
-            ViewBag.IsSent = false;
+            //ViewBag.IsSent = false;
             return View();
         }
 
@@ -33,7 +34,7 @@ namespace IdentityCodeYad.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewBag.IsSent = false;
+                //ViewBag.IsSent = false;
                 return View();
             }
 
@@ -49,21 +50,61 @@ namespace IdentityCodeYad.Controllers
                 foreach (var err in result.Errors)
                 {
                     ModelState.AddModelError(string.Empty, err.Description);
-                    ViewBag.IsSent = false;
+                    //ViewBag.IsSent = false;
                     return View();
                 }
             }
 
             var user = await _userManager.FindByNameAsync(model.UserName);
+            var mobileCode = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
 
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            string? callBackUrl = Url.ActionLink("ConfirmEmail", "Account", new { userId = user.Id, token = token },
-                Request.Scheme);
-            string body = await _viewRenderService.RenderToStringAsync("_RegisterEmail", callBackUrl);
-            await _emailSender.SendEmailAsync(new EmailModel(user.Email, "تایید حساب", body));
-            ViewBag.IsSent = true;
-            return View();
+            return RedirectToAction("ConfirmMobile", new{phone = user.PhoneNumber,token = mobileCode});
+
+            //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            //token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+            //string? callBackUrl = Url.ActionLink("ConfirmEmail", "Account", new { userId = user.Id, token = token },
+            //    Request.Scheme);
+            //string body = await _viewRenderService.RenderToStringAsync("_RegisterEmail", callBackUrl);
+            //await _emailSender.SendEmailAsync(new EmailModel(user.Email, "تایید حساب", body));
+            //ViewBag.IsSent = true;
+            //return View();
+        }
+
+        public IActionResult ConfirmMobile(string phone, string token)
+        {
+            if (phone == null || token == null) return BadRequest();
+            ConfirmMobileVM vm = new ConfirmMobileVM()
+            {
+                Phone = phone,
+                Code = token
+            };
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmMobile(ConfirmMobileVM model)
+        {
+            if (!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(u=>u.PhoneNumber == model.Phone);
+            if (user == null)
+            {
+                ModelState.AddModelError("","کاربری یافت نشد");
+                return View();
+            }
+
+            bool result = await _userManager.VerifyTwoFactorTokenAsync(user, "Phone", model.SmsCode);
+            if (!result)
+            {
+                ModelState.AddModelError(string.Empty,"کد وارد شده معتبر نمیباشد");
+                return View(model);
+            }
+
+            user.PhoneNumberConfirmed = true;
+            user.EmailConfirmed = true;
+            await _userManager.UpdateAsync(user);
+
+            return RedirectToAction("Login");
         }
 
         public async Task<IActionResult> ConfirmEmail(string userId, string token)
@@ -85,42 +126,83 @@ namespace IdentityCodeYad.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Login(LoginVM model, string returnUrl = null)
+        public async Task<IActionResult> Login(LoginWithPhoneVM model, string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
 
             if (!ModelState.IsValid) return View(model);
 
-            var user = await _userManager.FindByNameAsync(model.UserName);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.Phone);
             if (user == null)
             {
                 ModelState.AddModelError(string.Empty,"کاربری با این مشخصات یافت نشد");
                 return View(model);
             }
 
-            var result =
-                await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
+            var mobileCode = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
 
-            if (result.Succeeded)
+            return RedirectToAction("LoginConfirmation", new {phone = user.PhoneNumber, token = mobileCode});
+
+            //var result =
+            //    await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
+
+            //if (result.Succeeded)
+            //{
+            //    if (Url.IsLocalUrl(returnUrl))
+            //        return Redirect(returnUrl);
+            //    else
+            //        return RedirectToAction("Index", "Home");
+            //}
+            //else if (result.RequiresTwoFactor)
+            //{
+            //    return RedirectToAction("LoginWith2fa");
+            //}
+            //else if (result.IsLockedOut)
+            //{
+            //    ModelState.AddModelError(string.Empty, "حساب کابری شما قفل شده است");
+            //    return View(model);
+            //}
+
+            //ModelState.AddModelError(string.Empty, "تلاش برای ورود نامعتبر میباشد");
+            //return View();
+        }
+
+        public IActionResult LoginConfirmation(string phone,string token)
+        {
+            if (phone == null || token == null) return BadRequest();
+
+            LoginConfirmationVM vm = new()
             {
-                if (Url.IsLocalUrl(returnUrl))
-                    return Redirect(returnUrl);
-                else
-                    return RedirectToAction("Index", "Home");
-            }
-            else if (result.RequiresTwoFactor)
+                Phone = phone,
+                Code = token
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> LoginConfirmation(LoginConfirmationVM model)
+        {
+            if(!ModelState.IsValid) return View(model);
+
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.Phone);
+            if (user == null)
             {
-                return RedirectToAction("LoginWith2fa");
-            }
-            else if (result.IsLockedOut)
-            {
-                ModelState.AddModelError(string.Empty, "حساب کابری شما قفل شده است");
+                ModelState.AddModelError(string.Empty,"کاربری یافت نشد");
                 return View(model);
             }
 
-            ModelState.AddModelError(string.Empty, "تلاش برای ورود نامعتبر میباشد");
-            return View();
+            bool result = await _userManager.VerifyTwoFactorTokenAsync(user, "Phone", model.SmsCode);
+            if (!result)
+            {
+                ModelState.AddModelError(string.Empty, "کد وارد شده معتبر نمیباشد");
+                return View(model);
+            }
+
+            await _signInManager.SignInAsync(user, true);
+            return Redirect("/");
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
