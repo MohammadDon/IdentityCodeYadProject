@@ -280,5 +280,31 @@ namespace IdentityCodeYad.Controllers
 
             return RedirectToAction("Login");
         }
+
+        #region Remote Validations
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IsAnyUserName(string userName)
+        {
+            bool any = await _userManager.Users.AnyAsync(u => u.UserName == userName);
+            if (!any)
+                return Json(true);
+
+            return Json("نام کاربری مورد نظر از قبل ثبت شده است");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> IsAnyEmail(string email)
+        {
+            bool any = await _userManager.Users.AnyAsync(u => u.Email == email);
+            if (!any)
+                return Json(true);
+
+            return Json("ایمیل مورد نظر از قبل ثبت شده است");
+        }
+
+        #endregion
     }
 }
