@@ -7,7 +7,7 @@ public class RegisterVM
 {
     [Required]
     [MaxLength(250)]
-    [Remote("IsAnyUserName","Account",HttpMethod = "Post",AdditionalFields = "__RequestVerificationToken")]
+    //[Remote("IsAnyUserName","Account",HttpMethod = "Post",AdditionalFields = "__RequestVerificationToken")]
     public string UserName { get; set; }
     [Required]
     [EmailAddress]
