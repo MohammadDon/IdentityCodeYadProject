@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using IdentityCodeYad.Models;
 using IdentityCodeYad.Tools;
 using IdentityCodeYad.ViewModels;
 using Microsoft.AspNetCore.Identity;
@@ -10,12 +11,12 @@ namespace IdentityCodeYad.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
         private readonly IViewRenderService _viewRenderService;
 
-        public AccountController(UserManager<IdentityUser> userManager, IEmailSender emailSender, IViewRenderService viewRenderService, SignInManager<IdentityUser> signInManager)
+        public AccountController(UserManager<ApplicationUser> userManager, IEmailSender emailSender, IViewRenderService viewRenderService, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _emailSender = emailSender;
@@ -38,11 +39,12 @@ namespace IdentityCodeYad.Controllers
                 return View();
             }
 
-            var result = await _userManager.CreateAsync(new IdentityUser()
+            var result = await _userManager.CreateAsync(new ApplicationUser()
             {
                 UserName = model.UserName,
                 Email = model.Email,
-                PhoneNumber = model.Phone
+                PhoneNumber = model.Phone,
+                NickName = model.UserName
             }, model.Password);
 
             if (!result.Succeeded)
