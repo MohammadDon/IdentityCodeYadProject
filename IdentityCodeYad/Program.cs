@@ -9,6 +9,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = "556840814457-gi025cp3avocjvb2bruc4qmht0fln303.apps.googleusercontent.com";
+        options.ClientSecret = "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";
+    });
+
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     {
         // User Options

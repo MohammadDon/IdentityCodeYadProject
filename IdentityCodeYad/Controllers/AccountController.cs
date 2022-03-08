@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Security.Claims;
+using System.Text;
 using IdentityCodeYad.Models;
 using IdentityCodeYad.Tools;
 using IdentityCodeYad.ViewModels;
@@ -60,7 +61,7 @@ namespace IdentityCodeYad.Controllers
             var user = await _userManager.FindByNameAsync(model.UserName);
             var mobileCode = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
 
-            return RedirectToAction("ConfirmMobile", new{phone = user.PhoneNumber,token = mobileCode});
+            return RedirectToAction("ConfirmMobile", new { phone = user.PhoneNumber, token = mobileCode });
 
             //var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             //token = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
@@ -88,17 +89,17 @@ namespace IdentityCodeYad.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            var user = await _userManager.Users.FirstOrDefaultAsync(u=>u.PhoneNumber == model.Phone);
+            var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.Phone);
             if (user == null)
             {
-                ModelState.AddModelError("","کاربری یافت نشد");
+                ModelState.AddModelError("", "کاربری یافت نشد");
                 return View();
             }
 
             bool result = await _userManager.VerifyTwoFactorTokenAsync(user, "Phone", model.SmsCode);
             if (!result)
             {
-                ModelState.AddModelError(string.Empty,"کد وارد شده معتبر نمیباشد");
+                ModelState.AddModelError(string.Empty, "کد وارد شده معتبر نمیباشد");
                 return View(model);
             }
 
@@ -125,7 +126,12 @@ namespace IdentityCodeYad.Controllers
         {
             returnUrl ??= Url.Content("~/");
             ViewBag.ReturnUrl = returnUrl;
-            return View();
+            var model = new LoginWithPhoneVM()
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+            return View(model);
         }
         [HttpPost]
         public async Task<IActionResult> Login(LoginWithPhoneVM model, string returnUrl = null)
@@ -137,13 +143,13 @@ namespace IdentityCodeYad.Controllers
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.Phone);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty,"کاربری با این مشخصات یافت نشد");
+                ModelState.AddModelError(string.Empty, "کاربری با این مشخصات یافت نشد");
                 return View(model);
             }
 
             var mobileCode = await _userManager.GenerateTwoFactorTokenAsync(user, "Phone");
 
-            return RedirectToAction("LoginConfirmation", new {phone = user.PhoneNumber, token = mobileCode});
+            return RedirectToAction("LoginConfirmation", new { phone = user.PhoneNumber, token = mobileCode });
 
             //var result =
             //    await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
@@ -169,7 +175,7 @@ namespace IdentityCodeYad.Controllers
             //return View();
         }
 
-        public IActionResult LoginConfirmation(string phone,string token)
+        public IActionResult LoginConfirmation(string phone, string token)
         {
             if (phone == null || token == null) return BadRequest();
 
@@ -185,12 +191,12 @@ namespace IdentityCodeYad.Controllers
         [HttpPost]
         public async Task<IActionResult> LoginConfirmation(LoginConfirmationVM model)
         {
-            if(!ModelState.IsValid) return View(model);
+            if (!ModelState.IsValid) return View(model);
 
             var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == model.Phone);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty,"کاربری یافت نشد");
+                ModelState.AddModelError(string.Empty, "کاربری یافت نشد");
                 return View(model);
             }
 
@@ -231,7 +237,7 @@ namespace IdentityCodeYad.Controllers
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
-                ModelState.AddModelError(string.Empty,"تلاش برای ارسال ایمیل ناموفق بود");
+                ModelState.AddModelError(string.Empty, "تلاش برای ارسال ایمیل ناموفق بود");
                 ViewBag.IsSent = false;
                 return View();
             }
@@ -276,12 +282,81 @@ namespace IdentityCodeYad.Controllers
             {
                 foreach (var err in result.Errors)
                 {
-                    ModelState.AddModelError(string.Empty,err.Description);
+                    ModelState.AddModelError(string.Empty, err.Description);
                 }
             }
 
             return RedirectToAction("Login");
         }
+
+        #region External Login
+
+        [HttpPost]
+        public async Task<IActionResult> ExternalLogin(string provider, string returnUrl)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallBack", "Account",
+                new { ReturnUrl = returnUrl });
+
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return new ChallengeResult(provider, properties);
+        }
+
+        public async Task<IActionResult> ExternalLoginCallBack(string returnUrl = null, string remoteError = null)
+        {
+            returnUrl = (returnUrl != null && Url.IsLocalUrl(returnUrl) ? returnUrl : Url.Content("~/"));
+
+            var model = new LoginWithPhoneVM()
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error : {remoteError}");
+                return View("Login", model);
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error : {remoteError}");
+                return View("Login", model);
+            }
+
+            var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+            if (result.Succeeded)
+                return Redirect(returnUrl);
+
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            if (email != null)
+            {
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    string userName = email.Split("@")[0].Replace(".", "");
+                    user = new ApplicationUser()
+                    {
+                        Email = email,
+                        UserName = userName,
+                        NickName = userName,
+                        EmailConfirmed = true,
+                        PhoneNumberConfirmed = true,
+                        PhoneNumber = ""
+                    };
+
+                    await _userManager.CreateAsync(user);
+                }
+
+                await _userManager.AddLoginAsync(user, info);
+                await _signInManager.SignInAsync(user, false);
+                return Redirect(returnUrl);
+            }
+
+            return View();
+        }
+
+        #endregion
 
         #region Remote Validations
 

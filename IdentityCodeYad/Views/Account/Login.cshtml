@@ -23,6 +23,36 @@
     </div>
 </div>
 
+<div class="row mb-3">
+    <div class="col-md-12 text-center">
+        <h5 class="m-b-18" style="font-size: 16px">ورود با سرویس های خارجی :</h5>
+        @{
+            if (!Model.ExternalLogins.Any())
+            {
+                <div>در حال حاضر امکان ورود با سرویس های خارجی وجود ندارد</div>
+            }
+            else
+            {
+                <form method="post" asp-controller="Account" asp-action="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">
+                    <div>
+                        @foreach (var provider in Model.ExternalLogins)
+                        {
+
+                            <button type="submit" value="@provider.Name"
+                                    class="btn btn-primary" name="provider"
+                                    title="ورود با @provider.DisplayName ">
+                                @provider.DisplayName
+                            </button>
+
+                        }
+                    </div>
+                </form>
+            }
+
+        }
+    </div>
+</div>
+
 <div>
     <a asp-controller="Account" asp-action="ForgotPassword">Forgot Your Password ?</a>
     <a asp-controller="Home" asp-action="Index">Back to Home</a>
