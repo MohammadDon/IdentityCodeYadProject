@@ -14,6 +14,11 @@ builder.Services.AddAuthentication()
     {
         options.ClientId = "556840814457-gi025cp3avocjvb2bruc4qmht0fln303.apps.googleusercontent.com";
         options.ClientSecret = "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";
+    })
+    .AddMicrosoftAccount(options =>
+    {
+        options.ClientId = "439546c7-89c3-46b6-8028-f3f11d3eda82";
+        options.ClientSecret = "e8h7Q~aBdGS3megDzXjmeKeC0~OSE2TX1DYXC";
     });
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
