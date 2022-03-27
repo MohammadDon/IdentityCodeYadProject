@@ -5,11 +5,12 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
-
+// ly2qgItOZRq2PxdJHxrbsoisO MDxD1WzC2CSxJervSnDl0zqjq6k1nVCj8aUT9iRrHd8mEfMBkh
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddAuthentication()
+    .AddCookie()
     .AddGoogle(options =>
     {
         options.ClientId = "556840814457-gi025cp3avocjvb2bruc4qmht0fln303.apps.googleusercontent.com";
@@ -19,6 +20,11 @@ builder.Services.AddAuthentication()
     {
         options.ClientId = "439546c7-89c3-46b6-8028-f3f11d3eda82";
         options.ClientSecret = "e8h7Q~aBdGS3megDzXjmeKeC0~OSE2TX1DYXC";
+    })
+    .AddTwitter(options =>
+    {
+        options.ConsumerKey = "ly2qgItOZRq2PxdJHxrbsoisO";
+        options.ConsumerSecret = "MDxD1WzC2CSxJervSnDl0zqjq6k1nVCj8aUT9iRrHd8mEfMBkh";
     });
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
