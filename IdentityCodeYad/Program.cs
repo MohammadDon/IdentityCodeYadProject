@@ -25,6 +25,15 @@ builder.Services.AddAuthentication()
     {
         options.ConsumerKey = "ly2qgItOZRq2PxdJHxrbsoisO";
         options.ConsumerSecret = "MDxD1WzC2CSxJervSnDl0zqjq6k1nVCj8aUT9iRrHd8mEfMBkh";
+    })
+    .AddYahoo(options =>
+    {
+        options.ClientId = "dj0yJmk9ZWFvYWMzZXkwbXhhJmQ9WVdrOWNtdGhNR3gyTVdVbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWI0";
+        options.ClientSecret = "6c45514cdea4ca8ff43f3e76627f41bb2ea7e66f";
+    }).AddFacebook(options =>
+    {
+        options.AppId = "";
+        options.AppSecret = "";
     });
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
