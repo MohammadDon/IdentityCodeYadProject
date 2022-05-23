@@ -1,4 +1,4 @@
-using IdentityCodeYad.Data;
+﻿using IdentityCodeYad.Data;
 using IdentityCodeYad.Models;
 using IdentityCodeYad.Tools;
 using Microsoft.AspNetCore.Identity;
@@ -28,13 +28,15 @@ builder.Services.AddAuthentication()
     })
     .AddYahoo(options =>
     {
-        options.ClientId = "dj0yJmk9ZWFvYWMzZXkwbXhhJmQ9WVdrOWNtdGhNR3gyTVdVbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWI0";
+        options.ClientId =
+            "dj0yJmk9ZWFvYWMzZXkwbXhhJmQ9WVdrOWNtdGhNR3gyTVdVbWNHbzlNQT09JnM9Y29uc3VtZXJzZWNyZXQmc3Y9MCZ4PWI0";
         options.ClientSecret = "6c45514cdea4ca8ff43f3e76627f41bb2ea7e66f";
-    }).AddFacebook(options =>
-    {
-        options.AppId = "";
-        options.AppSecret = "";
     });
+    //.AddFacebook(options =>
+    //{
+    //    options.AppId = "";
+    //    options.AppSecret = "";
+    //});
 
 builder.Services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
     {

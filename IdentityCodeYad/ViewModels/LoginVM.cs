@@ -25,5 +25,5 @@ public class LoginWithPhoneVM
     public string Phone { get; set; }
 
     public string ReturnUrl { get; set; }
-    public List<AuthenticationScheme> ExternalLogins { get; set; }
+    public List<AuthenticationScheme>? ExternalLogins { get; set; }
 }

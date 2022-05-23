@@ -8,9 +8,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using IdentityCodeYad.Data;
 using IdentityCodeYad.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace IdentityCodeYad.Controllers
 {
+    
+    [AllowAnonymous]
     public class ProductsController : Controller
     {
         private readonly AppDbContext _context;
@@ -21,6 +24,7 @@ namespace IdentityCodeYad.Controllers
         }
 
         // GET: Products
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Products.ToListAsync());
