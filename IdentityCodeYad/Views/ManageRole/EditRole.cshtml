@@ -1,0 +1,16 @@
+﻿@model ApplicationRole
+@{
+    ViewData["Title"] = "EditRole";
+}
+
+<h1>EditRole</h1>
+
+<form asp-controller="ManageRole" asp-action="EditRole" asp-route-id="@Model.Id" method="post">
+    <div asp-validation-summary="ModelOnly"></div>
+    <div class="form-group">
+        <label class="control-label">Name :</label>
+        <input class="form-control" asp-for="Name"/>
+    </div>
+
+    <button class="btn btn-primary" type="submit">Submit</button>
+</form>

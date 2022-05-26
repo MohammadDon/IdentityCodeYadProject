@@ -1,0 +1,57 @@
+﻿@model List<IdentityCodeYad.ViewModels.ManageUser.UsersListViewNodel>
+@{
+    ViewData["Title"] = "Index";
+}
+
+
+@if (!Model.Any())
+{
+    <h1>No Users</h1>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">ID</th>
+            <th scope="col">UserName</th>
+            <th scope="col">Email</th>
+            <th scope="col">PhoneNumber</th>
+            <th scope="col">Links</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <th scope="row">@user.UserId</th>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.PhoneNumber</td>
+                <td>
+                    <form asp-controller="ManageUser" asp-action="DeleteUser" asp-route-id="@user.UserId" method="post">
+
+                        <a asp-controller="ManageUser" asp-action="EditUser" asp-route-id="@user.UserId"
+                           class="btn btn-primary">Edit </a>
+
+                        <button type="submit" class="btn btn-danger">Delete user</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @*foreach (var user in Model)
+    {
+        <div class="card mt-2">
+            <div class="card-body">
+                <p>User Name : <b>@user.UserName</b>
+                </p>
+                <p>User Email : <b>@user.Email</b></p>
+                <p>User Phone : <b>@user.PhoneNumber</b></p>
+                
+            </div>
+        </div>
+    }*@
+}
+

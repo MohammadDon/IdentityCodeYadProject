@@ -1,0 +1,42 @@
+﻿@model List<ApplicationRole>
+@{
+    ViewData["Title"] = "Index";
+}
+
+<a asp-controller="ManageRole" asp-action="AddRole" class="btn btn-primary">Add role</a>
+
+@if (!Model.Any())
+{
+    <h1>No Roles</h1>
+}
+else
+{
+    <table class="table">
+        <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Links</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var role in Model)
+        {
+            <tr>
+                <th scope="row">@role.Id</th>
+                <td>@role.Name</td>
+                <td>
+                    <form asp-controller="ManageRole" asp-action="DeleteRole" method="post" asp-route-id="@role.Id">
+
+                        <a asp-controller="ManageRole" asp-action="EditRole" asp-route-id="@role.Id"
+                           class="btn btn-primary">Edit</a>
+
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+

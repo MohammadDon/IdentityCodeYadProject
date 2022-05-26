@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Authorization;
 namespace IdentityCodeYad.Controllers
 {
     
-    [AllowAnonymous]
+    //[AllowAnonymous]
+    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "ProductManager")]
     public class ProductsController : Controller
     {
         private readonly AppDbContext _context;
@@ -24,7 +26,7 @@ namespace IdentityCodeYad.Controllers
         }
 
         // GET: Products
-        [Authorize]
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             return View(await _context.Products.ToListAsync());
